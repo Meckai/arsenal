@@ -1,0 +1,3268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeckAI — Arsenal de Ferramentas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080A0F;
+    --surface: #0E1118;
+    --surface2: #141720;
+    --border: #1E2330;
+    --accent: #00E5A0;
+    --accent2: #0066FF;
+    --accent3: #FF3D6B;
+    --text: #E8EBF2;
+    --muted: #6B7394;
+    --tag-bg: #151A28;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* GRID BG */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* GLOW */
+  .glow-orb {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%);
+    top: -200px;
+    right: -100px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-orb2 {
+    position: fixed;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,102,255,0.05) 0%, transparent 70%);
+    bottom: 100px;
+    left: -100px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 60px 40px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .logo-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--text);
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  h1 .line2 {
+    color: var(--accent);
+    display: block;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 540px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 40px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* FILTER TABS */
+  .filter-section {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 0;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filter-tab {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .filter-tab:hover, .filter-tab.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  /* SECTIONS */
+  .section {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 40px 0;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .section-accent {
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+  }
+
+  .section-count {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* CARDS GRID */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .card:hover {
+    background: var(--surface2);
+    border-color: #2A3040;
+    transform: translateY(-1px);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .card-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .card-name a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .card-name a:hover { color: var(--accent); }
+
+  .card-badge {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .badge-free {
+    background: rgba(0,229,160,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.2);
+  }
+
+  .badge-freemium {
+    background: rgba(0,102,255,0.1);
+    color: #4D8EFF;
+    border: 1px solid rgba(0,102,255,0.2);
+  }
+
+  .badge-paid {
+    background: rgba(255,61,107,0.1);
+    color: #FF6B8A;
+    border: 1px solid rgba(255,61,107,0.2);
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+
+  .card-use {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    padding-left: 12px;
+    border-left: 2px solid var(--accent);
+  }
+
+  .card-use-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .alt-block {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  .alt-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .alt-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .alt-item:last-child { margin-bottom: 0; }
+
+  .alt-item a {
+    color: #4D8EFF;
+    text-decoration: none;
+  }
+
+  .alt-item a:hover { text-decoration: underline; }
+
+  .alt-arrow {
+    color: var(--border);
+    font-size: 10px;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  .tag {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    border-radius: 2px;
+    border: 1px solid var(--border);
+  }
+
+  .card-footer {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .visit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid rgba(0,229,160,0.3);
+    padding: 6px 12px;
+    transition: all 0.2s;
+  }
+
+  .visit-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .visit-btn svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* PRIORITY BADGE */
+  .priority-star {
+    color: #FFD700;
+    font-size: 12px;
+  }
+
+  /* FOOTER */
+  footer {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 40px;
+    border-top: 1px solid var(--border);
+    margin-top: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+  }
+
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+  }
+
+  .footer-logo span { color: var(--accent); }
+
+  .footer-note {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* DIVIDER */
+  .section-divider {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 48px auto 0;
+    padding: 0 40px;
+  }
+
+  .divider-line {
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* CARD HIGHLIGHT (priority tools) */
+  .card.highlight {
+    border-color: rgba(0,229,160,0.2);
+  }
+
+  .card.highlight::after {
+    content: '★ PRIORIDADE';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    color: #FFD700;
+    background: rgba(255,215,0,0.08);
+    border: 1px solid rgba(255,215,0,0.2);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  /* SCROLL ANIMATION */
+  .card {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .cards-grid .card:nth-child(1) { animation-delay: 0.05s; }
+  .cards-grid .card:nth-child(2) { animation-delay: 0.1s; }
+  .cards-grid .card:nth-child(3) { animation-delay: 0.15s; }
+  .cards-grid .card:nth-child(4) { animation-delay: 0.2s; }
+  .cards-grid .card:nth-child(5) { animation-delay: 0.25s; }
+  .cards-grid .card:nth-child(6) { animation-delay: 0.3s; }
+  .cards-grid .card:nth-child(7) { animation-delay: 0.35s; }
+  .cards-grid .card:nth-child(8) { animation-delay: 0.4s; }
+  .cards-grid .card:nth-child(n+9) { animation-delay: 0.45s; }
+
+  @media (max-width: 768px) {
+    header, .filter-section, .section { padding-left: 20px; padding-right: 20px; }
+    h1 { font-size: 36px; }
+    .stats-bar { gap: 20px; }
+    .cards-grid { grid-template-columns: 1fr; }
+    footer { padding: 32px 20px; flex-direction: column; gap: 12px; text-align: center; }
+  }
+
+  /* ===== TOP 25 SECTION ===== */
+  .top25-section {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto 0;
+    padding: 0 40px 64px;
+  }
+
+  .top25-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding: 24px 28px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.05) 0%, rgba(0,229,160,0.03) 100%);
+    border: 1px solid rgba(255,215,0,0.2);
+  }
+
+  .top25-crown {
+    font-size: 32px;
+    line-height: 1;
+  }
+
+  .top25-title {
+    flex: 1;
+  }
+
+  .top25-title h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #FFD700;
+    text-transform: uppercase;
+  }
+
+  .top25-title p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .top25-badge {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: #FFD700;
+    background: rgba(255,215,0,0.08);
+    border: 1px solid rgba(255,215,0,0.25);
+    padding: 4px 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .top25-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .top25-card {
+    background: var(--surface);
+    border: 1px solid rgba(255,215,0,0.15);
+    padding: 16px;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .top25-card:hover {
+    border-color: rgba(255,215,0,0.4);
+    transform: translateY(-2px);
+  }
+
+  .top25-rank {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,215,0,0.4);
+    letter-spacing: 0.1em;
+  }
+
+  .top25-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .top25-name a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .top25-name a:hover { color: #FFD700; }
+
+  .top25-why {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .top25-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+
+  .top25-layer {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 2px 7px;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+
+  .layer-cash { background: rgba(0,229,160,0.1); color: var(--accent); border: 1px solid rgba(0,229,160,0.2); }
+  .layer-prosp { background: rgba(255,61,107,0.1); color: var(--accent3); border: 1px solid rgba(0,136,255,0.2); }
+  .layer-ops { background: rgba(255,60,0,0.1); color: #ff8c44; border: 1px solid rgba(255,60,0,0.2); }
+  .layer-os { background: rgba(204,68,255,0.1); color: #cc44ff; border: 1px solid rgba(204,68,255,0.2); }
+
+  .top25-access {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #FFD700;
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .top25-access:hover { opacity: 1; }
+
+  .top25-card.new-find {
+    border-color: rgba(0,136,255,0.2);
+  }
+
+  .top25-card.new-find .top25-rank::after {
+    content: ' NEW';
+    color: var(--accent3);
+    font-size: 8px;
+  }
+
+  /* Separadores de camada dentro do grid */
+  .top25-layer-header {
+    grid-column: 1 / -1;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 8px 0 4px;
+    border-bottom: 1px solid var(--border);
+    margin-top: 8px;
+  }
+
+  .top25-layer-header:first-child { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<div class="glow-orb2"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-bar">
+    <div class="logo-mark"></div>
+    <div class="logo-text">MECK<span>AI</span></div>
+  </div>
+  <div class="header-eyebrow">Arsenal Interno</div>
+  <h1>Ferramentas que<br><span class="line2">realmente servem.</span></h1>
+  <p class="header-sub">Curadoria filtrada de ferramentas de IA para a operação da agência — criativos, automação, conteúdo, prospecção e carreira internacional. Sem gordura.</p>
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-num">110+</span>
+      <span class="stat-label">Ferramentas</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">14</span>
+      <span class="stat-label">Categorias</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" style="color:#FFD700">79/79</span>
+      <span class="stat-label">Páginas varridas</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" style="color:#FFD700">25</span>
+      <span class="stat-label">Top Oficial</span>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== TOP 25 OFICIAL ===================== -->
+<div class="top25-section">
+  <div class="top25-header">
+    <div class="top25-crown">🏆</div>
+    <div class="top25-title">
+      <h2>Top 25 — Arsenal Oficial MeckAI OS</h2>
+      <p>Filtro final de 79 páginas varridas · Critério: ROI imediato + custo acessível + uso direto na operação</p>
+    </div>
+    <div class="top25-badge">Varredura completa 79/79</div>
+  </div>
+
+  <div class="top25-grid">
+
+    <!-- CAMADA 1: GERAR CAIXA -->
+    <div class="top25-layer-header">💰 Camada 1 — Gerar Caixa (Serviços Imediatos)</div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#01</div>
+      <div class="top25-name"><a href="https://make.com" target="_blank">Make.com</a></div>
+      <div class="top25-why">Backbone da operação inteira. Conecta tudo — Claude, Meta Ads, WhatsApp, Sheets. Sem Make, sem agência automatizada.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://make.com" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#02</div>
+      <div class="top25-name"><a href="https://heygen.com" target="_blank">HeyGen</a></div>
+      <div class="top25-why">Avatar IA para VSLs e apresentações. Vídeo profissional sem câmera — diferencial imediato para clientes infoprodutores.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://heygen.com" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#03</div>
+      <div class="top25-name"><a href="https://opus.pro" target="_blank">OpusClip</a></div>
+      <div class="top25-why">Corta vídeos longos em 10 shorts em 1 clique. Serviço de repurposing para infoprodutores — entrega imediata, alto valor percebido.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://opus.pro" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#04</div>
+      <div class="top25-name"><a href="https://copy.ai" target="_blank">Copy.ai</a></div>
+      <div class="top25-why">Copy de marketing, e-mails, ads e landing pages. Base de qualquer serviço de conteúdo vendido mensalmente.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://copy.ai" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#05</div>
+      <div class="top25-name"><a href="https://adcreative.ai" target="_blank">Adcreative.ai</a></div>
+      <div class="top25-why">Criativos de anúncios com IA — gera banners, copies e variações A/B em escala. Serviço de gestão de Meta Ads com este dentro vale mais.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://adcreative.ai" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#06</div>
+      <div class="top25-name"><a href="https://recontent.ai" target="_blank">ReContent.AI</a></div>
+      <div class="top25-why">Repurposing automático de conteúdo para todas as redes. Um vídeo vira post, thread, legenda e carrossel — serviço mensal natural.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://recontent.ai" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#07</div>
+      <div class="top25-name"><a href="https://elevenlabs.io" target="_blank">ElevenLabs</a></div>
+      <div class="top25-why">Voz IA + clonagem + trilha musical. Narração de VSLs, podcasts e Reels sem locutor. Tier gratuito generoso para começar.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://elevenlabs.io" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card new-find">
+      <div class="top25-rank">#08</div>
+      <div class="top25-name"><a href="https://harpa.ai" target="_blank">Harpa.ai</a></div>
+      <div class="top25-why">Extensão Chrome que integra IA ao browser — automatiza sites, extrai dados, escreve e-mails e copy SEO. Gratuito, absurdamente útil no dia a dia.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://harpa.ai" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#09</div>
+      <div class="top25-name"><a href="https://freepik.com" target="_blank">Freepik AI</a></div>
+      <div class="top25-why">Geração de imagens para criativos e landing pages. Tier gratuito generoso — banco de assets ilimitado para a agência.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://freepik.com" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card new-find">
+      <div class="top25-rank">#10</div>
+      <div class="top25-name"><a href="https://ingestai.io" target="_blank">IngestAI</a></div>
+      <div class="top25-why">Transforma base de conhecimento em chatbot deployável no WhatsApp, Slack ou Discord. Serviço de atendimento automatizado pronto para vender.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-cash">Gerar caixa</span>
+        <a href="https://ingestai.io" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <!-- CAMADA 2: PROSPECÇÃO -->
+    <div class="top25-layer-header">🎯 Camada 2 — Prospector Agent (MeckAI OS)</div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#11</div>
+      <div class="top25-name"><a href="https://clay.com" target="_blank">Clay</a></div>
+      <div class="top25-why">O motor do Prospector Agent. Enriquecimento de leads + personalização em escala. Integra com praticamente tudo.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-prosp">Prospecção</span>
+        <a href="https://clay.com" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#12</div>
+      <div class="top25-name"><a href="https://finalscout.com" target="_blank">FinalScout</a></div>
+      <div class="top25-why">Extrai e-mails verificados do LinkedIn. Input essencial para o pipeline de outreach — alimenta o Clay com dados de contato.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-prosp">Prospecção</span>
+        <a href="https://finalscout.com" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#13</div>
+      <div class="top25-name"><a href="https://dux-soup.com" target="_blank">Dux-Soup</a></div>
+      <div class="top25-why">Automação de LinkedIn — conexões, mensagens sequenciais e follow-ups no piloto automático. Core do Prospector Agent.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-prosp">Prospecção</span>
+        <a href="https://dux-soup.com" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card new-find">
+      <div class="top25-rank">#14</div>
+      <div class="top25-name"><a href="https://personaliz.me" target="_blank">Personaliz</a></div>
+      <div class="top25-why">Scrapa o site do prospect e escreve e-mail personalizado para cada um automaticamente. Outreach hiper-personalizado em escala — diferencial brutal.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-prosp">Prospecção</span>
+        <a href="https://personaliz.me" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card new-find">
+      <div class="top25-rank">#15</div>
+      <div class="top25-name"><a href="https://drippi.ai" target="_blank">Drippi</a></div>
+      <div class="top25-why">Outreach automatizado e personalizado no Twitter/X. Canal alternativo de prospecção — alcança fundadores e decisores que ignoram LinkedIn.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-prosp">Prospecção</span>
+        <a href="https://drippi.ai" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <!-- CAMADA 3: OPERAÇÕES -->
+    <div class="top25-layer-header">⚙️ Camada 3 — Operações Internas</div>
+
+    <div class="top25-card new-find">
+      <div class="top25-rank">#16</div>
+      <div class="top25-name"><a href="https://fireflies.ai" target="_blank">Fireflies.ai</a></div>
+      <div class="top25-why">Grava, transcreve e torna pesquisável cada reunião. Nunca mais perder o que foi combinado com cliente — operação profissional sem esforço.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-ops">Operações</span>
+        <a href="https://fireflies.ai" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#17</div>
+      <div class="top25-name"><a href="https://notebooklm.google.com" target="_blank">NotebookLM</a></div>
+      <div class="top25-why">Base de conhecimento inteligente da agência. Sobe docs, transcrições e PDFs — consulta qualquer informação como um chat. Gratuito.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-ops">Operações</span>
+        <a href="https://notebooklm.google.com" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card new-find">
+      <div class="top25-rank">#18</div>
+      <div class="top25-name"><a href="https://formwise.ai" target="_blank">FormWise.AI</a></div>
+      <div class="top25-why">Transforma prompts GPT em ferramentas visuais para clientes finais usarem. Cria mini-produtos de IA customizados sem código — productized services.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-ops">Operações</span>
+        <a href="https://formwise.ai" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#19</div>
+      <div class="top25-name"><a href="https://workspace.google.com/marketplace/app/gpt_for_sheets_and_docs" target="_blank">GPT for Sheets</a></div>
+      <div class="top25-why">IA direto no Google Sheets — análise de campanhas, relatórios automáticos, segmentação de leads. Eleva a percepção de valor dos relatórios.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-ops">Operações</span>
+        <a href="https://workspace.google.com" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card new-find">
+      <div class="top25-rank">#20</div>
+      <div class="top25-name"><a href="https://aiprm.com" target="_blank">AIPRM</a></div>
+      <div class="top25-why">Biblioteca de prompts curados no ChatGPT — padroniza todos os processos da agência. Cada entregável começa com um prompt testado e validado.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-ops">Operações</span>
+        <a href="https://aiprm.com" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <!-- CAMADA 4: MECKIAI OS -->
+    <div class="top25-layer-header">🤖 Camada 4 — MeckAI OS (Infraestrutura)</div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#21</div>
+      <div class="top25-name"><a href="https://systeme.io" target="_blank">Systeme.io</a></div>
+      <div class="top25-why">Funil + e-mail + checkout + afiliados em um lugar só. Ofertar para clientes infoprodutores como solução all-in-one — fee mensal garantido.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-os">MeckAI OS</span>
+        <a href="https://systeme.io" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#22</div>
+      <div class="top25-name"><a href="https://scope.money" target="_blank">Scope.money</a></div>
+      <div class="top25-why">Gestão financeira dos projetos da agência. Rastreia receitas, despesas e margem por cliente — essencial para escalar sem perder controle.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-os">MeckAI OS</span>
+        <a href="https://scope.money" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card new-find">
+      <div class="top25-rank">#23</div>
+      <div class="top25-name"><a href="https://gptagent.io" target="_blank">GptAgent</a></div>
+      <div class="top25-why">Constrói mini-apps de IA em minutos — chatbots, ferramentas e automações. Prototipar os agentes do MeckAI OS antes de codar a versão final.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-os">MeckAI OS</span>
+        <a href="https://gptagent.io" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#24</div>
+      <div class="top25-name"><a href="https://v0.dev" target="_blank">V0.dev</a></div>
+      <div class="top25-why">Gera interfaces e componentes React com IA por prompt. Criar dashboards e painéis para os agentes do MeckAI OS sem precisar de front-end dev.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-os">MeckAI OS</span>
+        <a href="https://v0.dev" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+    <div class="top25-card">
+      <div class="top25-rank">#25</div>
+      <div class="top25-name"><a href="https://leonardo.ai" target="_blank">Leonardo.AI</a></div>
+      <div class="top25-why">Geração de imagens de alta qualidade com controle fino — assets visuais para os clientes, capas de infoprodutos, thumbnails e criativos premium.</div>
+      <div class="top25-meta">
+        <span class="top25-layer layer-os">MeckAI OS</span>
+        <a href="https://leonardo.ai" target="_blank" class="top25-access">→ acessar</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider"><div class="divider-line"></div></div>
+
+<!-- ===================== CATEGORIA 1: CORE DA AGÊNCIA ===================== -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">01 — Core da Agência</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Usar agora</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://make.com" target="_blank">Make.com</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Automação visual no-code. Conecta Claude, Meta Ads, Google Sheets, WhatsApp, Gmail e centenas de outros serviços via fluxos visuais.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Automatizar entrega de relatórios para clientes, conectar leads do Meta ao CRM, disparar alertas de performance de campanha.
+      </div>
+      <div class="card-tags">
+        <span class="tag">automação</span><span class="tag">agência</span><span class="tag">integração</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://make.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://freepik.com" target="_blank">Freepik AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Geração de imagens com IA diretamente na plataforma Freepik. Imagens em estilos variados com tier gratuito generoso.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Gerar imagens para criativos de anúncio sem custo — fundos, elementos visuais, mockups de produto digital.
+      </div>
+      <div class="card-tags">
+        <span class="tag">criativos</span><span class="tag">imagens</span><span class="tag">anúncios</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://freepik.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://arcads.ai" target="_blank">Arcads</a></div>
+        <span class="card-badge badge-paid">Pago</span>
+      </div>
+      <p class="card-desc">Transforma texto em vídeos de anúncio com atores de IA ultra-realistas. Sem câmera, sem equipe, sem gravação.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Produzir criativos em escala para infoprodutores — depoimentos sintéticos, formatos Reels, UGC fake com aparência real.
+      </div>
+      <div class="card-tags">
+        <span class="tag">vídeo</span><span class="tag">criativos</span><span class="tag">anúncios</span><span class="tag">UGC</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://arcads.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://adspire.ai" target="_blank">Adspire</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Gerador de criativos de anúncios com IA. Cria banners, copies e variações de anúncio em escala.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Testar múltiplas variações de criativo rapidamente sem depender de designer — escalar testes A/B para clientes.
+      </div>
+      <div class="card-tags">
+        <span class="tag">criativos</span><span class="tag">anúncios</span><span class="tag">meta ads</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://adspire.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://humanize.im" target="_blank">Humanize AI</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Transforma copy gerada por IA em texto com voz humana natural. Remove padrões detectáveis de geração automática.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Passar copies de anúncios e landing pages pelo humanizador antes de entregar ao cliente ou publicar.
+      </div>
+      <div class="card-tags">
+        <span class="tag">copy</span><span class="tag">conteúdo</span><span class="tag">humanização</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://humanize.im" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://upscayl.org" target="_blank">Upscayl</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Aumenta resolução de imagens com IA. Open-source, roda local, sem limite de uso. Transforma imagens pequenas em alta resolução.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Escalar imagens de clientes ou geradas por IA para qualidade de impressão e anúncios de alta resolução.
+      </div>
+      <div class="card-tags">
+        <span class="tag">imagens</span><span class="tag">qualidade</span><span class="tag">open-source</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://upscayl.org" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://metavoice.xyz" target="_blank">MetaVoice Studio</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Voice-over com qualidade de estúdio gerado por IA. Clonagem de voz e síntese expressiva.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Narração de VSLs e vídeos de anúncio para clientes sem precisar de locutor profissional.
+      </div>
+      <div class="card-tags">
+        <span class="tag">voz</span><span class="tag">VSL</span><span class="tag">vídeo</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://metavoice.xyz" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://elevenlabs.io" target="_blank">ElevenLabs Music</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Geração de trilhas musicais originais por IA — mesmo ElevenLabs da clonagem de voz, agora com geração musical.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar trilhas personalizadas para criativos de vídeo e Reels sem pagar por licença de música.
+      </div>
+      <div class="card-tags">
+        <span class="tag">música</span><span class="tag">criativos</span><span class="tag">vídeo</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://elevenlabs.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://aicontentzy.com" target="_blank">aiContentzy</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Gerador de conteúdo para redes sociais com IA — posts, legendas, threads e roteiros otimizados por plataforma.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Alimentar calendário de conteúdo de clientes infoprodutores sem depender de copywriter para cada post.
+      </div>
+      <div class="card-tags">
+        <span class="tag">conteúdo</span><span class="tag">social media</span><span class="tag">copy</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://aicontentzy.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 2: PRODUÇÃO DE VÍDEO ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">02 — Produção de Vídeo</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Criativos & conteúdo</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://opusclip.com" target="_blank">OpusClip</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Recorta automaticamente os melhores momentos de vídeos longos com legendas dinâmicas animadas. Um dos mais avançados na categoria.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Transformar aulas, lives e podcasts de infoprodutores em clips para Reels e TikTok automaticamente.
+      </div>
+      <div class="alt-block">
+        <div class="alt-label">Alternativas</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://clipmaker.co" target="_blank">ClipMaker</a> — faz o mesmo, foco em YouTube, interface mais simples</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag">vídeo</span><span class="tag">reels</span><span class="tag">tiktok</span><span class="tag">repurposing</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://opusclip.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://higgsfield.ai" target="_blank">Higgsfield</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Cria vídeos cinematic para social media com avatares e personagens de IA. Foco em conteúdo nativo de plataforma.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar vídeos de introdução e anúncio com personagens sem precisar aparecer em câmera.
+      </div>
+      <div class="card-tags">
+        <span class="tag">vídeo</span><span class="tag">avatar</span><span class="tag">criativos</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://higgsfield.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://neiro.ai" target="_blank">Studio Neiro AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Texto → vídeos com apresentadores de IA realistas. Alternativa ao HeyGen com tier gratuito.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        VSLs e vídeos explicativos para produtos digitais de clientes sem precisar de gravação.
+      </div>
+      <div class="card-tags">
+        <span class="tag">vídeo</span><span class="tag">VSL</span><span class="tag">apresentador</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://neiro.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://liveportrait.github.io" target="_blank">Live Portrait</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Anima fotos estáticas com lip sync e expressões faciais. Pode usar foto + áudio para criar vídeo de personagem.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Animar avatar ou mascote de infoprodutor sem precisar de câmera — útil para Reels de personagem.
+      </div>
+      <div class="card-tags">
+        <span class="tag">lip sync</span><span class="tag">avatar</span><span class="tag">animação</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://liveportrait.github.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://viggle.ai" target="_blank">Viggle AI</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Gera vídeos de personagens com movimentos controláveis. Primeiro modelo com compreensão real de física 3D.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criativos de vídeo diferenciados com personagens animados — formato inédito nos anúncios de concorrentes.
+      </div>
+      <div class="card-tags">
+        <span class="tag">vídeo</span><span class="tag">personagem</span><span class="tag">animação 3D</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://viggle.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://freebeat.ai" target="_blank">Freebeat</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Sincroniza vídeos automaticamente com o beat da música. Cria edits rítmicos sem precisar editar manualmente.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar Reels e TikToks de produto sincronizados com trilha — formato com alto engajamento orgânico.
+      </div>
+      <div class="card-tags">
+        <span class="tag">vídeo</span><span class="tag">edição</span><span class="tag">reels</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://freebeat.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://musichero.ai" target="_blank">MusicHero</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Gera músicas originais a partir de texto. Powered by Suno V3.5. Produz tracks completas com letra e instrumentação.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar jingles e trilhas personalizadas para identidade de marca de infoprodutores.
+      </div>
+      <div class="alt-block">
+        <div class="alt-label">Alternativas</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://elevenlabs.io" target="_blank">ElevenLabs Music</a> — listada no Core da Agência</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag">música</span><span class="tag">jingle</span><span class="tag">criativo</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://musichero.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://vidnoz.com" target="_blank">Vidnoz AI Translate</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Traduz e dubla vídeos para 140+ idiomas com lip sync automático. Mantém a voz original com sotaque adaptado.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Adaptar conteúdo de infoprodutores para inglês/espanhol sem nova gravação — expandir alcance internacional.
+      </div>
+      <div class="card-tags">
+        <span class="tag">tradução</span><span class="tag">dubbing</span><span class="tag">internacionalização</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://vidnoz.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 3: DEV & AUTOMAÇÃO ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">03 — Dev & Automação</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Build sem código</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://v0.dev" target="_blank">V0 Dev (Vercel)</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Gera interfaces React e UI completa via texto. Da descrição ao código funcional em segundos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar dashboards de relatório para clientes, protótipos de landing page e componentes visuais rapidamente.
+      </div>
+      <div class="card-tags">
+        <span class="tag">frontend</span><span class="tag">React</span><span class="tag">dashboard</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://v0.dev" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://websim.ai" target="_blank">Websim AI</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Cria sites e apps funcionais via prompts de texto. Simula e renderiza em tempo real.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Prototipar landing pages de clientes rapidamente antes de passar pro Netlify ou Vercel.
+      </div>
+      <div class="alt-block">
+        <div class="alt-label">Alternativas</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://wegic.ai" target="_blank">Wegic</a> — cria sites via conversa, mais amigável para clientes</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://asekio.com" target="_blank">Asekio</a> — builder de sites em 29 segundos</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag">sites</span><span class="tag">landing page</span><span class="tag">no-code</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://websim.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://llamacoder.together.ai" target="_blank">Llama Coder</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Cria apps funcionais completos via IA sem programar. Powered by Llama, open-source.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar ferramentas internas da agência ou mini-produtos digitais para infoprodutores sem custo de desenvolvimento.
+      </div>
+      <div class="card-tags">
+        <span class="tag">apps</span><span class="tag">no-code</span><span class="tag">open-source</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://llamacoder.together.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://thunderbit.com" target="_blank">Thunderbit</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Automação web e scraping no-code. Extrai dados de qualquer site sem código via extensão de browser.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Raspar dados de concorrentes, coletar preços, extrair leads de páginas e automatizar tarefas web repetitivas.
+      </div>
+      <div class="card-tags">
+        <span class="tag">scraping</span><span class="tag">automação</span><span class="tag">dados</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://thunderbit.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://camel-ai.org/owl" target="_blank">OWL by Camel AI</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Framework open-source para criação de sistemas multi-agentes. Agentes cooperam para resolver tarefas complexas.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Base para construir agentes autônomos de análise de campanhas e relatórios — nível avançado da agência.
+      </div>
+      <div class="card-tags">
+        <span class="tag">multi-agente</span><span class="tag">open-source</span><span class="tag">automação avançada</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://camel-ai.org/owl" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://hanabi.rest" target="_blank">Hanabi.rest</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Cria REST APIs funcionais via linguagem natural. Sem backend, sem servidor — descreve e gera o endpoint.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar APIs rápidas para conectar ferramentas internas da agência sem precisar de dev backend.
+      </div>
+      <div class="card-tags">
+        <span class="tag">API</span><span class="tag">backend</span><span class="tag">no-code</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://hanabi.rest" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://formshare.co" target="_blank">Formshare</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Formulários conversacionais com IA. Substitui formulários estáticos por experiências de chat interativo.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Onboarding de novos clientes da agência, briefings e coleta de informações de infoprodutores de forma fluida.
+      </div>
+      <div class="card-tags">
+        <span class="tag">formulários</span><span class="tag">onboarding</span><span class="tag">clientes</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://formshare.co" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://saasforge.dev" target="_blank">SaaS Forge</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Gerador de ideias de micro-SaaS baseado em IA. Analisa gaps de mercado e sugere produtos viáveis.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Encontrar nichos de micro-produtos digitais para lançar como serviço adicional da agência.
+      </div>
+      <div class="card-tags">
+        <span class="tag">produto</span><span class="tag">ideação</span><span class="tag">SaaS</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://saasforge.dev" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 4: CHATBOTS & ATENDIMENTO ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">04 — Chatbots & Atendimento</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Serviço adicional para clientes</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://stackbear.com" target="_blank">Stackbear</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Cria chatbots customizados alimentados pelo conteúdo do cliente, sem código. Totalmente personalizável.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Oferecer chatbot de suporte/vendas como serviço adicional para infoprodutores — atende alunos e leads 24/7.
+      </div>
+      <div class="alt-block">
+        <div class="alt-label">Alternativas</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://bothatch.com" target="_blank">Bothatch</a> — mesmo caso de uso, interface diferente, avaliar qual tem melhor free tier</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag">chatbot</span><span class="tag">suporte</span><span class="tag">no-code</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://stackbear.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://spacevoice.ai" target="_blank">SpaceVoice AI</a></div>
+        <span class="card-badge badge-paid">Pago</span>
+      </div>
+      <p class="card-desc">Realiza ligações de vendas com voz de IA humanizada. Atende leads, qualifica e agenda sem intervenção humana.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Oferecer como serviço premium para infoprodutores com alto volume de leads — follow-up automatizado por voz.
+      </div>
+      <div class="card-tags">
+        <span class="tag">vendas</span><span class="tag">ligação</span><span class="tag">automação</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://spacevoice.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://wave.ai" target="_blank">Wave</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Grava e transcreve reuniões e calls automaticamente no iOS. Gera resumos e action items.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Documentar reuniões com clientes automaticamente — nunca perder briefings ou acordos fechados em call.
+      </div>
+      <div class="card-tags">
+        <span class="tag">reuniões</span><span class="tag">transcrição</span><span class="tag">produtividade</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://wave.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 5: PESQUISA & ANÁLISE ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">05 — Pesquisa & Análise</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Inteligência estratégica</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://askpot.com" target="_blank">Askpot</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Analisa landing pages de concorrentes com IA e extrai insights de copy, posicionamento e estrutura.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Benchmarking antes de criar campanhas — entender o que os concorrentes dos clientes estão comunicando.
+      </div>
+      <div class="card-tags">
+        <span class="tag">análise competitiva</span><span class="tag">copy</span><span class="tag">landing page</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://askpot.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://lmarena.ai" target="_blank">LMArena.ai</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Benchmark de modelos de IA em tempo real. Testa o mesmo prompt em múltiplos modelos lado a lado.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Decidir qual modelo usar para cada tarefa da agência — copy, análise de dados, código, imagem.
+      </div>
+      <div class="card-tags">
+        <span class="tag">benchmark</span><span class="tag">modelos</span><span class="tag">estratégia</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://lmarena.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://notebooklm.google.com" target="_blank">NotebookLM</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Upload de documentos e conversa direta com o conteúdo via IA. Cria podcasts de audio dos documentos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Estudar materiais densos de Meta Ads e IA — fazer perguntas ao conteúdo em vez de ler passivamente.
+      </div>
+      <div class="card-tags">
+        <span class="tag">estudo</span><span class="tag">documentos</span><span class="tag">pesquisa</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://notebooklm.google.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://uxsniff.com" target="_blank">UXsniff</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Analisa gravações de sessão de sites e identifica padrões de clique anormais automaticamente com IA.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Otimizar landing pages de infoprodutores — descobrir onde os usuários travam antes de comprar.
+      </div>
+      <div class="card-tags">
+        <span class="tag">CRO</span><span class="tag">UX</span><span class="tag">landing page</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://uxsniff.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://user-evaluation.com" target="_blank">User Evaluation</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Extrai insights de clientes de entrevistas, calls e feedbacks via IA. Transforma dados qualitativos em padrões.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Entender o público dos infoprodutores antes de criar campanhas — análise de depoimentos e avaliações.
+      </div>
+      <div class="card-tags">
+        <span class="tag">pesquisa</span><span class="tag">audiência</span><span class="tag">insights</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://user-evaluation.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://secbrain.co" target="_blank">SecBrain</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Captura, organiza e conecta ideias com IA. Segunda memória digital com busca semântica.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Organizar insights de campanhas, referências de criativos e ideias de copy em base de conhecimento buscável.
+      </div>
+      <div class="card-tags">
+        <span class="tag">PKM</span><span class="tag">ideias</span><span class="tag">organização</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://secbrain.co" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 6: CONTEÚDO & COPY ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">06 — Conteúdo & Copy</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Produção em escala</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://god-of-prompt.com" target="_blank">God of Prompt</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">GPT especializado em gerar prompts de alta qualidade para Claude, ChatGPT e Midjourney.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar biblioteca de prompts reutilizáveis para a agência — copy de anúncio, roteiros, análise de campanha.
+      </div>
+      <div class="alt-block">
+        <div class="alt-label">Alternativas</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://herogpt.ai" target="_blank">Hero GPT</a> — gerador de prompts para ChatGPT e Midjourney, mais focado em imagem</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag">prompts</span><span class="tag">engenharia</span><span class="tag">produtividade</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://god-of-prompt.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://caption-spark.com" target="_blank">Caption Spark</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Gera legendas criativas para Instagram com IA. Vários estilos e formatos disponíveis.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Agilizar produção de copy para posts de clientes — legendas engajantes em segundos.
+      </div>
+      <div class="card-tags">
+        <span class="tag">instagram</span><span class="tag">copy</span><span class="tag">legendas</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://buildai.space/app/caption-spark" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://pressmaster.ai" target="_blank">Pressmaster.ai</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Gerador de press releases e conteúdo de PR com IA. Distribui para veículos automaticamente.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Gerar cobertura de imprensa para lançamentos de infoprodutos — autoridade e prova social adicional.
+      </div>
+      <div class="card-tags">
+        <span class="tag">PR</span><span class="tag">autoridade</span><span class="tag">lançamento</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://pressmaster.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://videotoblog.ai" target="_blank">Video to Blog</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Converte vídeos do YouTube em artigos de blog formatados e otimizados para SEO automaticamente.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Transformar conteúdo em vídeo de infoprodutores em artigos de blog — SEO sem esforço adicional.
+      </div>
+      <div class="card-tags">
+        <span class="tag">SEO</span><span class="tag">blog</span><span class="tag">repurposing</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://videotoblog.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://ai-suggests.com" target="_blank">AI Suggests</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Gerador de ideias de conteúdo para redes sociais com IA. Ideias únicas e originais em segundos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Nunca ficar sem pauta — gerar ideias de conteúdo para o calendário mensal de clientes.
+      </div>
+      <div class="card-tags">
+        <span class="tag">ideação</span><span class="tag">conteúdo</span><span class="tag">pauta</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://ai-suggests.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://guidde.com" target="_blank">Guidde</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Cria documentação em vídeo passo a passo automaticamente. Grava tela e gera narração + texto.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar materiais de onboarding para novos clientes da agência e tutoriais de uso das ferramentas entregues.
+      </div>
+      <div class="card-tags">
+        <span class="tag">documentação</span><span class="tag">onboarding</span><span class="tag">tutorial</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://guidde.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 7: DESIGN & IMAGENS ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">07 — Design & Imagens</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Visual sem designer</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://kittl.com" target="_blank">Kittl</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Ferramenta de design com deep learning que converte texto em artes visuais profissionais. Qualidade acima do Canva.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar thumbnails de YouTube, banners de anúncio e criativos visuais de alta qualidade sem designer.
+      </div>
+      <div class="card-tags">
+        <span class="tag">design</span><span class="tag">thumbnails</span><span class="tag">criativos</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://kittl.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://prodia.com" target="_blank">Prodia</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">API de geração de imagens com Stable Diffusion. Playground gratuito, múltiplos modelos disponíveis.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Geração rápida de imagens para criativos sem custo via API — integrável com automações Make.com.
+      </div>
+      <div class="alt-block">
+        <div class="alt-label">Alternativas</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://civitai.com/models/realistic-stock-photo" target="_blank">Realistic Stock Photo</a> — modelo SD específico para fotos stock realistas</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag">geração de imagem</span><span class="tag">API</span><span class="tag">Stable Diffusion</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://prodia.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://gradients.app" target="_blank">Gradients</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Biblioteca de gradientes gratuitos para uso comercial sem necessidade de permissão. Download direto.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Fundos visuais para landing pages, criativos de anúncio e apresentações — uso comercial livre.
+      </div>
+      <div class="card-tags">
+        <span class="tag">design</span><span class="tag">fundos</span><span class="tag">gratuito comercial</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://gradients.app" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://svg.io" target="_blank">SVG.IO</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Converte texto em SVG vetorial com IA gratuitamente. Gera ícones e ilustrações escaláveis.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar ícones e elementos visuais vetoriais para landing pages e apresentações sem pagar por ilustração.
+      </div>
+      <div class="card-tags">
+        <span class="tag">SVG</span><span class="tag">vetorial</span><span class="tag">ícones</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://svg.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://profilepro.ai" target="_blank">ProfilePro</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Extensão Chrome que otimiza Google Business Profile automaticamente com IA. Posts, FAQs e descrições.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Serviço adicional para clientes infoprodutores com negócio físico ou local — SEO local automatizado.
+      </div>
+      <div class="card-tags">
+        <span class="tag">Google</span><span class="tag">SEO local</span><span class="tag">extensão</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://profilepro.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 8: PROSPECÇÃO & CARREIRA ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">08 — Prospecção & Carreira Internacional</span>
+    <div class="section-accent"></div>
+    <span class="section-count">ClientFlow + Track Canadá</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://clay.com" target="_blank">Clay</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Plataforma de enriquecimento de dados e prospecção com IA. Busca, filtra e enriquece listas de leads automaticamente.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        ClientFlow — prospecção em escala de negócios brasileiros nos EUA. Montar listas segmentadas por cidade/nicho.
+      </div>
+      <div class="card-tags">
+        <span class="tag">prospecção</span><span class="tag">leads</span><span class="tag">ClientFlow</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://clay.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://loopcv.pro" target="_blank">LoopCV</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Automatiza completamente o processo de candidatura a vagas. Envia CV para centenas de vagas automaticamente.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Track de carreira internacional — automatizar envio de candidaturas para empresas de segurança no Canadá/EUA.
+      </div>
+      <div class="card-tags">
+        <span class="tag">carreira</span><span class="tag">Canadá</span><span class="tag">automação</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://loopcv.pro" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://learnlingo.ai" target="_blank">LearnLingo</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Prática de idiomas via conversação com IA. Simula situações reais com feedback em tempo real.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Preparação para entrevistas em inglês para vagas no Canadá/EUA — praticar sem custo de professor.
+      </div>
+      <div class="card-tags">
+        <span class="tag">inglês</span><span class="tag">entrevista</span><span class="tag">carreira</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://learnlingo.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://synthmind.app" target="_blank">SynthMind AI</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Geração e qualificação de leads com IA. Identifica perfis alinhados com o ICP automaticamente.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Complemento ao Clay para qualificação de leads do ClientFlow — filtrar melhor os prospectos antes do outreach.
+      </div>
+      <div class="card-tags">
+        <span class="tag">leads</span><span class="tag">qualificação</span><span class="tag">ICP</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://synthmind.app" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 9: GOOGLE ECOSYSTEM ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">09 — Google Ecosystem</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Labs & ferramentas experimentais</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://labs.google.com/stitch" target="_blank">Google Stitch</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Texto ou sketch → UI completa + código frontend. Do Labs do Google.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar interfaces de landing pages e dashboards rapidamente — alternativa ao V0 do Vercel.
+      </div>
+      <div class="card-tags">
+        <span class="tag">UI</span><span class="tag">frontend</span><span class="tag">Google Labs</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://labs.google.com/stitch" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://opal.withgoogle.com" target="_blank">Google Opal</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Cria mini-apps e automações sem código usando IA do Google. Conecta serviços do ecossistema.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Automações rápidas dentro do ecossistema Google — Sheets, Drive, Calendar integrados por IA.
+      </div>
+      <div class="card-tags">
+        <span class="tag">automação</span><span class="tag">Google</span><span class="tag">no-code</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://opal.withgoogle.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://aistudio.google.com" target="_blank">Google AI Studio</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Desenvolvimento e prototipagem com Gemini + API gratuita. Acesso aos modelos mais avançados do Google.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Desenvolver agentes e automações com Gemini como alternativa ao Claude — comparar modelos por tarefa.
+      </div>
+      <div class="card-tags">
+        <span class="tag">Gemini</span><span class="tag">API</span><span class="tag">desenvolvimento</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://aistudio.google.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://labs.google.com/pomelli" target="_blank">Google Pomelli</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Criação de criativos on-brand em escala. Disponível para EUA, Canadá, Austrália e Nova Zelândia.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Escalar produção de criativos para campanhas internacionais do ClientFlow nos EUA/Canadá.
+      </div>
+      <div class="card-tags">
+        <span class="tag">criativos</span><span class="tag">escala</span><span class="tag">internacional</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://labs.google.com/pomelli" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 10: EDUCAÇÃO ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">10 — Educação Gratuita</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Certificações & upskilling</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://academy.openai.com" target="_blank">OpenAI Academy</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">11 cursos de IA gratuitos. Desde fundamentos até prompt engineering avançado e análise de dados.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prioridade de estudo</div>
+        Intro to Prompt Engineering → Advanced Prompt Engineering → ChatGPT for Data Analysis.
+      </div>
+      <div class="card-tags">
+        <span class="tag">certificação</span><span class="tag">prompt</span><span class="tag">gratuito</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://academy.openai.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://learn.nvidia.com" target="_blank">NVIDIA DLI (9 Cursos)</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">9 cursos gratuitos de IA do NVIDIA. De fundamentos a aplicações avançadas com certificado oficial.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Certificações de peso para o portfólio — NVIDIA tem credibilidade alta no mercado tech internacional.
+      </div>
+      <div class="card-tags">
+        <span class="tag">certificação</span><span class="tag">NVIDIA</span><span class="tag">portfólio</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://learn.nvidia.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://cloud.google.com/training" target="_blank">Google Skills Boost</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Cursos e certificações de IA e cloud do Google. Badges de conclusão reconhecidos no mercado.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Badges de IA generativa e cloud para fortalecer o perfil LinkedIn e candidaturas internacionais.
+      </div>
+      <div class="card-tags">
+        <span class="tag">certificação</span><span class="tag">Google</span><span class="tag">cloud</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://cloud.google.com/training" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://coursera.org" target="_blank">Coursera (Audit)</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Acesso a cursos de universidades de elite em modo audit gratuito. Andrew Ng AI for Everyone disponível.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        AI for Everyone do Andrew Ng — visão estratégica de IA para negócios, não técnico.
+      </div>
+      <div class="card-tags">
+        <span class="tag">estudo</span><span class="tag">universidade</span><span class="tag">Andrew Ng</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://coursera.org" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 11: STACK DE SERVIÇOS — CAMADA 1 ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">11 — Stack de Serviços (Camada 1)</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Geração de caixa imediato</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://heygen.com" target="_blank">HeyGen</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Avatar de IA ultra-realista para vídeos. Clona voz e aparência — apresenta em qualquer idioma sem gravar.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar vídeos de apresentação, VSLs e onboarding de produto para infoprodutores sem câmera. Serviço de alto valor.
+      </div>
+      <div class="card-tags">
+        <span class="tag">avatar</span><span class="tag">vídeo</span><span class="tag">VSL</span><span class="tag">clonagem</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://heygen.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://copy.ai" target="_blank">Copy.ai</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Geração de copy de marketing completa com IA — emails, anúncios, landing pages, postagens e fluxos de vendas.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Produzir copies em escala para clientes — anúncios Meta, emails de nutrição e páginas de vendas de infoprodutos.
+      </div>
+      <div class="card-tags">
+        <span class="tag">copy</span><span class="tag">marketing</span><span class="tag">anúncios</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://copy.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://hoppycopy.co" target="_blank">Hoppy Copy</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Especialista em copy de email marketing com IA. Sequências, newsletters, campanhas de lançamento e fluxos automatizados.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Escrever sequências de email completas para lançamentos de infoprodutos — Copy.ai para ads, Hoppy Copy para email.
+      </div>
+      <div class="card-tags">
+        <span class="tag">email</span><span class="tag">copy</span><span class="tag">lançamento</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://hoppycopy.co" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://adcrafter.ai" target="_blank">Adcrafter.ai</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Criação de anúncios completos com IA — texto, imagem e variações em escala para múltiplas plataformas.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Gerar pacotes de criativos para clientes Meta Ads rapidamente — texto + visual em uma ferramenta só.
+      </div>
+      <div class="card-tags">
+        <span class="tag">anúncios</span><span class="tag">criativo</span><span class="tag">meta ads</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://adcrafter.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://turncage.com" target="_blank">TurnCage</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Cria sites completos e profissionais com IA em minutos. Interface simples, ideal para clientes que precisam de presença online rápida.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Alternativa ao Websim/Wegic para clientes que precisam de site pronto rápido — serviço de entrega em 24h.
+      </div>
+      <div class="card-tags">
+        <span class="tag">sites</span><span class="tag">landing page</span><span class="tag">rápido</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://turncage.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://audiopen.ai" target="_blank">AudioPen</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Transcreve e organiza notas de voz em texto estruturado com IA. Capta ideias falando e as transforma em conteúdo.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Capturar ideias e briefings de clientes por áudio — economiza tempo de digitação e não perde nenhuma ideia.
+      </div>
+      <div class="card-tags">
+        <span class="tag">produtividade</span><span class="tag">voz</span><span class="tag">notas</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://audiopen.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://voicepen.ai" target="_blank">VoicePen</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Converte áudios e podcasts em posts escritos, artigos e conteúdo de blog com IA.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Transformar aulas e lives de infoprodutores em artigos SEO — repurposing de conteúdo automatizado.
+      </div>
+      <div class="card-tags">
+        <span class="tag">repurposing</span><span class="tag">áudio</span><span class="tag">conteúdo</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://voicepen.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://autothread.app" target="_blank">AutoThread</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Transforma tweets e vídeos em threads do Twitter/X automaticamente com IA.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Repurposing de conteúdo de clientes para X/Twitter — gera threads virais a partir de qualquer conteúdo existente.
+      </div>
+      <div class="card-tags">
+        <span class="tag">Twitter</span><span class="tag">threads</span><span class="tag">repurposing</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://autothread.app" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://playgroundai.com" target="_blank">Playground AI</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Geração de imagens com IA — modelos variados, edição avançada e tier gratuito generoso. Alternativa ao Midjourney.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Gerar imagens para criativos de anúncio, thumbnails e materiais visuais sem custo de assinatura premium.
+      </div>
+      <div class="card-tags">
+        <span class="tag">imagens</span><span class="tag">criativos</span><span class="tag">design</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://playgroundai.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://clipdrop.co" target="_blank">Clipdrop</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Suite de edição de imagem com IA da Stability AI — remove fundo, limpa imagens, troca iluminação e upscale.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Edição rápida de fotos de produtos e materiais de clientes — substituição do Photoshop para uso básico e médio.
+      </div>
+      <div class="card-tags">
+        <span class="tag">edição</span><span class="tag">imagens</span><span class="tag">background</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://clipdrop.co" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://remove.bg" target="_blank">Remove.bg</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Remove fundo de imagens automaticamente com IA. Resultado profissional em segundos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Preparar fotos de produtos, thumbnails e materiais de clientes sem precisar de Photoshop.
+      </div>
+      <div class="card-tags">
+        <span class="tag">imagens</span><span class="tag">background</span><span class="tag">design</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://remove.bg" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://chat100.ai" target="_blank">Chat100.ai</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Acesso a múltiplos modelos de IA (GPT-4, Claude, Gemini, Llama) em uma interface unificada. Sem pagar por cada API.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Testar respostas de diferentes modelos para a mesma tarefa — escolher o melhor por tipo de trabalho sem custo extra.
+      </div>
+      <div class="card-tags">
+        <span class="tag">multi-modelo</span><span class="tag">GPT-4</span><span class="tag">Claude</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://chat100.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://scrap.so" target="_blank">Scrap.so</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Scraping e extração de dados web com IA. Coleta e estrutura dados de qualquer site automaticamente.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Raspar listas de empresas, preços de concorrentes e dados de mercado para prospecção e relatórios de clientes.
+      </div>
+      <div class="card-tags">
+        <span class="tag">scraping</span><span class="tag">dados</span><span class="tag">prospecção</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://scrap.so" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://midjourney.com" target="_blank">Midjourney</a></div>
+        <span class="card-badge badge-paid">Pago</span>
+      </div>
+      <p class="card-desc">Geração de imagens de alto nível artístico. O modelo de referência para criativos visuais premium.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criativos premium para clientes que precisam de visuais de alto impacto — capas de ebook, identidade visual, thumbnails.
+      </div>
+      <div class="card-tags">
+        <span class="tag">imagens</span><span class="tag">design</span><span class="tag">premium</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://midjourney.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 12: SOCIAL MEDIA MANAGEMENT ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">12 — Social Media Management</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Agendamento, repurposing e análise</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://recontent.ai" target="_blank">ReContent.AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Repurposa conteúdo existente para múltiplos formatos e plataformas automaticamente com IA.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Transformar aulas, lives e podcasts de infoprodutores em posts, threads e emails — serviço de repurposing em escala.
+      </div>
+      <div class="card-tags">
+        <span class="tag">repurposing</span><span class="tag">conteúdo</span><span class="tag">escala</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://recontent.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://syllaby.io" target="_blank">Syllaby</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Ferramenta de conversão de leads para profissionais de serviço — gera scripts de vídeo baseados nas perguntas do nicho.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar roteiros de vídeo que convertem para coaches e mentores — conteúdo que responde o que o público já busca.
+      </div>
+      <div class="card-tags">
+        <span class="tag">roteiros</span><span class="tag">conversão</span><span class="tag">infoprodutores</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://syllaby.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://nuelink.com" target="_blank">Nuelink</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Agendamento e automação de social media com IA. Gerencia múltiplas redes de uma só vez.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Gestão de conteúdo de infoprodutores em escala — agendar posts em todas as redes a partir de um ponto central.
+      </div>
+      <div class="alt-block">
+        <div class="alt-label">Alternativas</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://socialbee.io" target="_blank">SocialBee</a> — criação + agendamento com IA</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://publer.io" target="_blank">Publer AI</a> — gestão com IA integrada</div>
+        <div class="alt-item"><span class="alt-arrow">→</span> <a href="https://recurpost.com" target="_blank">RecurPost</a> — agendamento recorrente com ChatGPT</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag">agendamento</span><span class="tag">social media</span><span class="tag">automação</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://nuelink.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://trendmate.xyz" target="_blank">Trendmate.xyz</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Analisa tendências em tempo real no Facebook, Twitter, Instagram e TikTok com IA.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Identificar pautas quentes antes de criar conteúdo — vantagem de timing para clientes que produzem conteúdo diário.
+      </div>
+      <div class="card-tags">
+        <span class="tag">tendências</span><span class="tag">timing</span><span class="tag">conteúdo</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://trendmate.xyz" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://analisa.io" target="_blank">Analisa.io</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Analytics de Instagram e TikTok com IA — métricas de engajamento, análise de concorrentes e relatórios automáticos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Relatórios de performance de conteúdo para clientes — entrega profissional de dados sem planilha manual.
+      </div>
+      <div class="card-tags">
+        <span class="tag">analytics</span><span class="tag">Instagram</span><span class="tag">relatórios</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://analisa.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://toobsquid.ai" target="_blank">ToobSquid</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Gera títulos, descrições, hashtags e timestamps otimizados para YouTube com IA.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        SEO de YouTube automatizado para infoprodutores com canal — aumenta alcance orgânico sem esforço extra.
+      </div>
+      <div class="card-tags">
+        <span class="tag">YouTube</span><span class="tag">SEO</span><span class="tag">automação</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://toobsquid.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://commentreply.ai" target="_blank">CommentReply.AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Responde comentários do YouTube na voz autêntica do criador com IA — aprende o estilo e mantém consistência.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Para infoprodutores com canal grande — automatiza engajamento sem perder a voz do criador.
+      </div>
+      <div class="card-tags">
+        <span class="tag">YouTube</span><span class="tag">engajamento</span><span class="tag">automação</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://commentreply.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://brandbird.app" target="_blank">Brandbird</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Transforma screenshots em cards visuais on-brand para redes sociais — resultados, tweets e insights em formato visual.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar posts de prova social e resultados para a MeckAI e clientes — screenshots de métricas viram conteúdo profissional.
+      </div>
+      <div class="card-tags">
+        <span class="tag">design</span><span class="tag">social media</span><span class="tag">prova social</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://brandbird.app" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 13: PROSPECÇÃO AVANÇADA (MeckAI OS) ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">13 — Prospecção Avançada</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Prospector Agent · MeckAI OS</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://clay.com" target="_blank">Clay</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Prospecção em escala com enriquecimento de dados automático — combina dezenas de fontes e IA para montar listas qualificadas.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prospector Agent — núcleo</div>
+        Motor principal do agente de prospecção — encontra empresas, enriquece dados e prepara listas para outreach automatizado.
+      </div>
+      <div class="card-tags">
+        <span class="tag">prospecção</span><span class="tag">leads</span><span class="tag">enriquecimento</span><span class="tag">MeckAI OS</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://clay.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://finalscout.com" target="_blank">FinalScout</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Extrai emails de perfis do LinkedIn + gera mensagens personalizadas com ChatGPT para cada prospect.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prospector Agent — enriquecimento</div>
+        Encontrar email de decisores no LinkedIn e gerar primeiro contato personalizado em escala — complemento ao Clay.
+      </div>
+      <div class="card-tags">
+        <span class="tag">LinkedIn</span><span class="tag">email</span><span class="tag">outreach</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://finalscout.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://dux-soup.com" target="_blank">Dux-Soup</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Automatiza prospecção no LinkedIn — visitas de perfil, conexões, follow-ups e mensagens personalizadas em sequência.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prospector Agent — outreach LinkedIn</div>
+        Automação de outreach no LinkedIn em escala para o ClientFlow e prospecção internacional — com controle total.
+      </div>
+      <div class="card-tags">
+        <span class="tag">LinkedIn</span><span class="tag">automação</span><span class="tag">outreach</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://dux-soup.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://adline.com" target="_blank">Adline</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Cria e gerencia anúncios em múltiplos canais sem experiência prévia — IA decide onde e como investir o budget.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Serviço de gestão de tráfego simplificado para clientes — alternativa ao Meta Ads Manager tradicional com IA integrada.
+      </div>
+      <div class="card-tags">
+        <span class="tag">anúncios</span><span class="tag">multi-canal</span><span class="tag">tráfego</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://adline.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://scope.money" target="_blank">Scope.money</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Plugin GPT-4 que gera mensagens altamente personalizadas para prospects no LinkedIn — personalização em escala.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prospector Agent — personalização</div>
+        Gerar mensagens de primeiro contato personalizadas no LinkedIn para o ClientFlow e prospecção B2B internacional.
+      </div>
+      <div class="card-tags">
+        <span class="tag">LinkedIn</span><span class="tag">outreach</span><span class="tag">personalização</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://scope.money" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://stride.io" target="_blank">Stride</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Monitora redes sociais para capturar leads via email em escala — detecta prospects que falam sobre problemas específicos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prospector Agent — monitoramento</div>
+        Encontrar prospects que estão falando sobre dores que a MeckAI resolve — prospecção por sinal de intenção.
+      </div>
+      <div class="card-tags">
+        <span class="tag">social listening</span><span class="tag">leads</span><span class="tag">intenção</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://stride.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://keywordsearch.com" target="_blank">KeywordSearch</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Geração de leads via keywords estratégicas no YouTube e Google Ads — identifica audiências prontas para comprar.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Otimizar campanhas de infoprodutores além do Meta — encontrar palavras-chave com alta intenção de compra no Google/YouTube.
+      </div>
+      <div class="card-tags">
+        <span class="tag">keywords</span><span class="tag">Google Ads</span><span class="tag">YouTube Ads</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://keywordsearch.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://imai.ai" target="_blank">Influencer Marketing AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Plataforma all-in-one para buscar, analisar e gerenciar influenciadores com IA — search, CRM e relatórios integrados.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Para infoprodutores que fazem co-marketing — encontrar influenciadores do nicho certos com dados de performance real.
+      </div>
+      <div class="card-tags">
+        <span class="tag">influencer</span><span class="tag">co-marketing</span><span class="tag">dados</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://imai.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://systeme.io" target="_blank">Systeme.io</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Funis de vendas, email marketing, cursos online e site em uma plataforma só. Free plan para até 2.000 contatos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Plataforma completa para infoprodutores que querem controle total — alternativa ao Hotmart/Kajabi com free tier real.
+      </div>
+      <div class="card-tags">
+        <span class="tag">funil</span><span class="tag">email</span><span class="tag">curso online</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://systeme.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://parsio.io" target="_blank">Parsio</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Extrai dados estruturados de documentos, emails e PDFs automaticamente com IA — parser inteligente sem código.</p>
+      <div class="card-use">
+        <div class="card-use-label">Agente Operacional — MeckAI OS</div>
+        Processar notas fiscais, contratos e relatórios de clientes automaticamente — input para o agente operacional.
+      </div>
+      <div class="card-tags">
+        <span class="tag">documentos</span><span class="tag">extração</span><span class="tag">automação</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://parsio.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://arcwise.app" target="_blank">Arcwise AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Copiloto de IA para Google Sheets — entende o contexto da planilha, responde perguntas e executa análises diretamente.</p>
+      <div class="card-use">
+        <div class="card-use-label">Agente Operacional — MeckAI OS</div>
+        Análise de dados de campanhas diretamente em Sheets — substituição parcial do analista de dados para clientes.
+      </div>
+      <div class="card-tags">
+        <span class="tag">planilhas</span><span class="tag">análise</span><span class="tag">Google Sheets</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://arcwise.app" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://marketmuse.com" target="_blank">MarketMuse</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Planejamento e otimização de conteúdo SEO com IA — insights personalizados, lacunas de conteúdo e oportunidades de ranking.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Serviço de SEO de conteúdo para infoprodutores com blog ou canal — identificar o que escrever para ranquear.
+      </div>
+      <div class="card-tags">
+        <span class="tag">SEO</span><span class="tag">conteúdo</span><span class="tag">blog</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://marketmuse.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://scispace.com" target="_blank">Scispace</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Lê, interpreta e explica papers acadêmicos com IA — faz perguntas sobre qualquer pesquisa científica.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Validar estratégias de campanha com dados de pesquisa — embasar propostas para clientes com evidência científica.
+      </div>
+      <div class="card-tags">
+        <span class="tag">pesquisa</span><span class="tag">dados</span><span class="tag">validação</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://scispace.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 14: NOVAS DESCOBERTAS (PGS 25–79) ===================== -->
+<div class="section-divider"><div class="divider-line"></div></div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">14 — Novas Descobertas</span>
+    <div class="section-accent"></div>
+    <span class="section-count">Páginas 25–79 · Varredura completa</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://harpa.ai" target="_blank">Harpa.ai</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Extensão Chrome que integra ChatGPT ao browser — automatiza tarefas em sites, extrai dados de páginas, escreve e-mails e copy SEO diretamente no contexto da navegação.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Pesquisa de concorrentes, extração de dados de clientes potenciais e escrita de copy sem sair do browser. Grátis, zero fricção para adotar.
+      </div>
+      <div class="card-tags">
+        <span class="tag">extensão</span><span class="tag">automação</span><span class="tag">copy</span><span class="tag">SEO</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://harpa.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://personaliz.me" target="_blank">Personaliz</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Scrapa o site de cada prospect automaticamente e gera um e-mail de outreach hiper-personalizado para cada um. Escala o que normalmente tomaria horas por lead.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prospector Agent — MeckAI OS</div>
+        Peça central do pipeline de outreach frio — prospects recebem e-mail que parece escrito manualmente, mas é gerado em lote.
+      </div>
+      <div class="card-tags">
+        <span class="tag">outreach</span><span class="tag">personalização</span><span class="tag">e-mail</span><span class="tag">prospecção</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://personaliz.me" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://drippi.ai" target="_blank">Drippi</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Automatiza outreach personalizado no Twitter/X — filtra perfis por nicho, gera DMs personalizadas com IA e executa sequências de follow-up.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prospector Agent — MeckAI OS</div>
+        Canal alternativo ao LinkedIn para alcançar fundadores e decisores. Especialmente útil para infoprodutores ativos no X.
+      </div>
+      <div class="card-tags">
+        <span class="tag">Twitter/X</span><span class="tag">outreach</span><span class="tag">DMs</span><span class="tag">prospecção</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://drippi.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://fireflies.ai" target="_blank">Fireflies.ai</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Grava, transcreve e torna pesquisável toda e qualquer reunião — Zoom, Meet, Teams. Busca inteligente dentro das transcrições e resumo automático de ação.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Nunca mais perder o que foi combinado em reunião de onboarding ou entrega. Transcrição de briefing de cliente vira base de conhecimento do projeto.
+      </div>
+      <div class="card-tags">
+        <span class="tag">reuniões</span><span class="tag">transcrição</span><span class="tag">operações</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://fireflies.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://ingestai.io" target="_blank">IngestAI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Transforma qualquer base de conhecimento (PDFs, Notion, docs) em chatbot deployável no WhatsApp, Slack, Discord ou site em minutos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Serviço de atendimento automatizado para vender a infoprodutores — chatbot de suporte do curso no WhatsApp em 1 dia de setup.
+      </div>
+      <div class="card-tags">
+        <span class="tag">chatbot</span><span class="tag">WhatsApp</span><span class="tag">atendimento</span><span class="tag">automação</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://ingestai.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://aiprm.com" target="_blank">AIPRM</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Biblioteca de templates de prompts curados e testados diretamente no ChatGPT, via extensão Chrome. Categorias de SEO, marketing, vendas e desenvolvimento.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Padronizar os prompts de toda a operação — cada entregável começa com um template testado, não de prompt improvisado.
+      </div>
+      <div class="card-tags">
+        <span class="tag">prompts</span><span class="tag">ChatGPT</span><span class="tag">produtividade</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://aiprm.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://formwise.ai" target="_blank">FormWise.AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Transforma prompts GPT em ferramentas visuais que clientes finais conseguem usar sem saber nada de IA — formulário entra, resultado de IA sai.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar mini-ferramentas de IA brandadas para clientes — "gerador de copy de anúncio" ou "criador de roteiro" como produto white-label.
+      </div>
+      <div class="card-tags">
+        <span class="tag">no-code</span><span class="tag">ferramentas IA</span><span class="tag">white-label</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://formwise.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://fyran.com" target="_blank">FYRAN</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Chatbots com avatares digitais humanos — combina base de conhecimento com representação visual de um "atendente" virtual com rosto e voz.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Versão premium do serviço de chatbot — cliente paga mais por ter um avatar da própria marca respondendo alunos e leads no site.
+      </div>
+      <div class="card-tags">
+        <span class="tag">chatbot</span><span class="tag">avatar</span><span class="tag">atendimento</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://fyran.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://adcreative.ai" target="_blank">Adcreative.ai</a></div>
+        <span class="card-badge badge-paid">Pago</span>
+      </div>
+      <p class="card-desc">Geração de criativos de anúncios com IA — banners, copies e variações A/B em escala. Conecta direto ao Meta Ads e Google Ads.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Serviços de gestão de tráfego com criativo IA incluso — diferencial de entrega versus gestores comuns. Mais variações, mais rápido.
+      </div>
+      <div class="card-tags">
+        <span class="tag">criativos</span><span class="tag">Meta Ads</span><span class="tag">A/B</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://adcreative.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://leonardo.ai" target="_blank">Leonardo.AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Geração de imagens de alta qualidade com controle fino de estilo — modelos treinados para produto, fotorrealismo e arte conceitual.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Capas de infoprodutos, thumbnails de curso, criativos premium e assets visuais que parecem feitos por designer profissional.
+      </div>
+      <div class="card-tags">
+        <span class="tag">imagens</span><span class="tag">design</span><span class="tag">criativos</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://leonardo.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://framer.com" target="_blank">Framer AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Gera e publica sites completos a partir de um prompt de texto — design responsivo, animações e hospedagem inclusos. De zero ao ar em minutos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar landing pages para clientes com velocidade de agência — entrega em horas, não dias. Pacote de landing page tem margem altíssima com este stack.
+      </div>
+      <div class="card-tags">
+        <span class="tag">landing page</span><span class="tag">sites</span><span class="tag">no-code</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://framer.com" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://gptagent.io" target="_blank">GptAgent</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Constrói apps e ferramentas de IA customizadas em minutos sem código — chatbots, assistentes especializados e mini-agentes com interface própria.</p>
+      <div class="card-use">
+        <div class="card-use-label">MeckAI OS</div>
+        Prototipar os agentes do MeckAI OS antes de desenvolver a versão final. Testar fluxos e validar lógica de negócio rapidamente.
+      </div>
+      <div class="card-tags">
+        <span class="tag">no-code</span><span class="tag">agentes</span><span class="tag">prototipagem</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://gptagent.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://eightify.app" target="_blank">Eightify</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Resume qualquer vídeo do YouTube em 8 pontos principais com IA — lê transcrição e extrai os insights essenciais em segundos.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Pesquisa de mercado e análise de concorrentes via vídeos do YouTube — extrair insights de webinários e aulas longas sem assistir tudo.
+      </div>
+      <div class="card-tags">
+        <span class="tag">YouTube</span><span class="tag">pesquisa</span><span class="tag">resumo</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://eightify.app" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== CATEGORIA 14: NOVAS DESCOBERTAS (PGS 25–79) ===================== -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">14 — Novas Descobertas <span style="color:var(--accent3);font-size:10px;letter-spacing:0.12em">· Varredura pgs 25–79</span></span>
+    <div class="section-accent"></div>
+    <span class="section-count">6 ferramentas</span>
+  </div>
+  <div class="cards-grid">
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://personaliz.me" target="_blank">Personaliz</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Scrapa o site do prospect automaticamente e escreve um e-mail de outreach altamente personalizado para cada empresa. Escala personalização real.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prospector Agent — MeckAI OS</div>
+        Primeira mensagem de cold outreach para cada lead gerado pelo Clay — hiper-personalizada, sem escrever manualmente.
+      </div>
+      <div class="card-tags">
+        <span class="tag">prospecção</span><span class="tag">outreach</span><span class="tag">personalização</span><span class="tag">★ TOP 25</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://personaliz.me" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://drippi.ai" target="_blank">Drippi</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Automatiza outreach no Twitter/X com personalização por perfil — analisa o histórico do prospect e escreve DM contextualizada.</p>
+      <div class="card-use">
+        <div class="card-use-label">Prospector Agent — MeckAI OS</div>
+        Canal de prospecção alternativo ao LinkedIn — atinge fundadores e decisores que são mais responsivos no X.
+      </div>
+      <div class="card-tags">
+        <span class="tag">Twitter</span><span class="tag">outreach</span><span class="tag">prospecção</span><span class="tag">★ TOP 25</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://drippi.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://harpa.ai" target="_blank">Harpa.ai</a></div>
+        <span class="card-badge badge-free">Gratuito</span>
+      </div>
+      <p class="card-desc">Extensão Chrome que integra ChatGPT/Claude ao browser. Automatiza tarefas em qualquer site, extrai dados, escreve e-mails e copy SEO direto na página.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Usar no dia a dia para acelerar pesquisa de prospects, extrair informações de sites de clientes e gerar copy contextualizada sem sair do browser.
+      </div>
+      <div class="card-tags">
+        <span class="tag">browser</span><span class="tag">automação</span><span class="tag">copy</span><span class="tag">★ TOP 25</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://harpa.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://fireflies.ai" target="_blank">Fireflies.ai</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Transcreve reuniões automaticamente, gera resumos e torna todas as conversas pesquisáveis. Funciona com Zoom, Meet, Teams e chamadas de voz.</p>
+      <div class="card-use">
+        <div class="card-use-label">Agente Operacional — MeckAI OS</div>
+        Documentar calls com clientes, extrair action items e alimentar a base de conhecimento da agência sem esforço manual.
+      </div>
+      <div class="card-tags">
+        <span class="tag">reuniões</span><span class="tag">transcrição</span><span class="tag">operações</span><span class="tag">★ TOP 25</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://fireflies.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card highlight">
+      <div class="card-top">
+        <div class="card-name"><a href="https://ingestai.io" target="_blank">IngestAI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Transforma qualquer base de conhecimento (PDFs, docs, sites) em chatbot deployável no WhatsApp, Slack ou Discord. Sem código.</p>
+      <div class="card-use">
+        <div class="card-use-label">Agente de Atendimento — MeckAI OS</div>
+        Criar chatbot de suporte personalizado para cada cliente — atende dúvidas 24/7 com a base de conhecimento do negócio deles.
+      </div>
+      <div class="card-tags">
+        <span class="tag">chatbot</span><span class="tag">WhatsApp</span><span class="tag">atendimento</span><span class="tag">★ TOP 25</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://ingestai.io" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name"><a href="https://formwise.ai" target="_blank">FormWise.AI</a></div>
+        <span class="card-badge badge-freemium">Freemium</span>
+      </div>
+      <p class="card-desc">Transforma prompts de IA em ferramentas visuais interativas para clientes finais usarem sem precisar saber de IA. Cria mini-produtos customizados.</p>
+      <div class="card-use">
+        <div class="card-use-label">Aplicação MeckAI</div>
+        Criar ferramentas white-label para cada cliente — gerador de copy, criador de roteiro, analisador de campanha — entregue como produto do cliente.
+      </div>
+      <div class="card-tags">
+        <span class="tag">no-code</span><span class="tag">ferramentas</span><span class="tag">white-label</span><span class="tag">★ TOP 25</span>
+      </div>
+      <div class="card-footer">
+        <a href="https://formwise.ai" target="_blank" class="visit-btn">Acessar <svg viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider" style="margin-top:64px"><div class="divider-line"></div></div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">MECK<span>AI</span></div>
+    <div class="footer-note" style="margin-top:6px">Arsenal interno — varredura <strong style="color:var(--accent)">completa</strong> · 79/79 páginas · 110+ ferramentas · 14 categorias</div>
+  </div>
+  <div class="footer-note" style="text-align:right">
+    Atualizado: Março 2026<br>
+    Top 25 Oficial definida ✓
+  </div>
+</footer>
+
+</body>
+</html>
